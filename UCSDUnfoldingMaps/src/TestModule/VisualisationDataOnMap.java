@@ -1,21 +1,25 @@
 package TestModule;
 
 import java.util.HashMap;
-import java.util.Map;
 import java.util.List;
 
 import de.fhpotsdam.unfolding.UnfoldingMap;
+import de.fhpotsdam.unfolding.marker.Marker;
 import de.fhpotsdam.unfolding.data.Feature;
 import de.fhpotsdam.unfolding.data.GeoJSONReader;
-import de.fhpotsdam.unfolding.marker.Marker;
-import de.fhpotsdam.unfolding.providers.Google;
+
+import de.fhpotsdam.unfolding.providers.*;
 import de.fhpotsdam.unfolding.utils.MapUtils;
 import processing.core.PApplet;
 
 public class VisualisationDataOnMap extends PApplet
 {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	UnfoldingMap map;
-	Map<String,Float> lifeExpectancyByCountry;
+	HashMap<String,Float> lifeExpectancyByCountry;
 	List<Feature> countries;
 	List<Marker> countryMarkers;
 	
@@ -25,13 +29,22 @@ public class VisualisationDataOnMap extends PApplet
 		size(800, 600, OPENGL);
 		map = new UnfoldingMap(this, 50, 50, 700, 500, new Google.GoogleMapProvider());
 		MapUtils.createDefaultEventDispatcher(this, map);
-		lifeExpectancyByCountry = loadLifeExpectancyFromCV("..\\data\\LifeExpectancyWorldBank.csv");
-		countries = GeoJSONReader.loadData(this, "..\\data\\countries.geo.json");
+		
+		lifeExpectancyByCountry = loadLifeExpectancyFromCV("LifeExpectancyWorldBank.csv");
+		println("Loaded LEbC" + lifeExpectancyByCountry.size() + " data entries");
+		
+		countries = GeoJSONReader.loadData(this, "countries.geo.json");
+		println("Loaded Countries" + countries.size() + " data entries");
+		
 		countryMarkers = MapUtils.createSimpleMarkers(countries);
 		
 		map.addMarkers(countryMarkers);
 		shadeCountries();
 		
+	}
+	public void draw()
+	{
+		map.draw();
 	}
 	private void shadeCountries()
 	{
@@ -52,24 +65,27 @@ public class VisualisationDataOnMap extends PApplet
 				
 		}
 	}
-	private Map<String,Float> loadLifeExpectancyFromCV(String fileName)
+	private HashMap<String,Float> loadLifeExpectancyFromCV(String fileName)
 	{
-		Map<String,Float> expLifeMap = new HashMap<String,Float>();
+		HashMap<String,Float> expLifeMap = new HashMap<String,Float>();
 		String[] rows = loadStrings(fileName);
 		for (String  row : rows)
 		{
 			String[] columns = row.split(",");
-			if(columns.length == 6 && !columns[5].equals(".."))
+			if(columns.length >= 6 && !columns[5].equals(".."))
 			{
-				float value = Float.parseFloat(columns[5]);
-				expLifeMap.put(columns[4], value);
+				try
+				{
+					expLifeMap.put(columns[4], Float.parseFloat(columns[5]));
+				}
+				catch (NumberFormatException e)
+				{
+					System.err.println("Country name: " + columns[2]+ columns[3]+ " country ID: "+ columns[4] + " witj first value: " + columns[5]+e);
+				}
+				
 			}
 		}
 		return expLifeMap;
-	}
-	public void draw()
-	{
-		map.draw();
 	}
 
 }
