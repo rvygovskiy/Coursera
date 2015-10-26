@@ -76,16 +76,34 @@ public class EarthquakeCityMap extends PApplet {
 	    // These print statements show you (1) all of the relevant properties 
 	    // in the features, and (2) how to get one property and use it
 	    if (earthquakes.size() > 0) {
-	    	PointFeature f = earthquakes.get(0);
-	    	System.out.println(f.getProperties());
-	    	Object magObj = f.getProperty("magnitude");
-	    	float mag = Float.parseFloat(magObj.toString());
+	    	//PointFeature f = earthquakes.get(1);
+	    	//System.out.println(f.getProperties());
+	    	//System.out.println(f.getLocation());
+	    	//Object magObj = f.getProperty("magnitude");
+	    	//float mag = Float.parseFloat(magObj.toString());
 	    	// PointFeatures also have a getLocation method
-	    }
+	    	for(PointFeature f : earthquakes )
+	    	{
+	    		markers.add(createMarker(f));
+	    		System.out.println(f.getProperties());
+		    	System.out.println(f.getLocation());
+		    //	float mag = Float.parseFloat(magObj.toString());
+		    //	float mag = Float.parseFloat(String.valueOf(magObj));
+	    	}	
 	    
+	    
+	    }
+	    map.addMarkers(markers);
 	    // Here is an example of how to use Processing's color method to generate 
 	    // an int that represents the color yellow.  
 	    int yellow = color(255, 255, 0);
+	    int red = color(255, 0, 0);
+	    int blue = color(0, 0, 255);
+	    
+	    
+	    //SimplePointMarker earthQuakePlase = createMarker(earthquakes);
+	    //markers = MapUtils.createSimpleMarkers();
+	    
 	    
 	    //TODO: Add code here as appropriate
 	}
@@ -95,12 +113,56 @@ public class EarthquakeCityMap extends PApplet {
 	// TODO: Implement this method and call it from setUp, if it helps
 	private SimplePointMarker createMarker(PointFeature feature)
 	{
+		SimplePointMarker onePoint = new SimplePointMarker(feature.getLocation());
+		float magnitudeValue = Float.parseFloat(feature.getProperty("magnitude").toString());
+		onePoint.setRadius(ObtainRadius(magnitudeValue));
+		onePoint.setColor(ObtainColor(magnitudeValue));
+		
 		// finish implementing and use this method, if it helps.
-		return new SimplePointMarker(feature.getLocation());
+		return onePoint;
+	}
+	
+	private int ObtainColor(float magnitudeValue)
+	{
+		if(magnitudeValue >= 5)
+		{
+			return color(200+(int) map(magnitudeValue, 5, 12, 0, 55 ), 0, 0);
+		} else if(magnitudeValue >= 4) 
+		{
+			return color(200+(int) map(magnitudeValue, 4, 5, 0, 55 ), 200+(int) map(magnitudeValue, 4, 5, 0, 55 ), 0);
+			
+		} else if (magnitudeValue >= 0)
+		{
+			return color(0, 0, 200+(int) map(magnitudeValue, 0, 4, 0, 55 ));
+	
+		} else
+		{
+			return 150;
+		}
+		
+	}
+	private int ObtainRadius(float magnitudeValue)
+	{
+		if(magnitudeValue >= 5)
+		{
+			return (int) map(magnitudeValue, 5, 12, 10, 15 );
+		} else if(magnitudeValue >= 4) 
+		{
+			return (int) map(magnitudeValue, 4, 5, 5, 10 );
+			
+		} else if (magnitudeValue >= 0)
+		{
+			return (int) map(magnitudeValue, 0, 3, 0, 5);
+	
+		} else
+		{
+			return 0;
+		}
+		
 	}
 	
 	public void draw() {
-	    background(10);
+	    background(200,200,200);
 	    map.draw();
 	    addKey();
 	}
@@ -110,6 +172,14 @@ public class EarthquakeCityMap extends PApplet {
 	// TODO: Implement this method to draw the key
 	private void addKey() 
 	{	
+		fill(255);
+		rect(25, 50, 150, 200);
+		fill(255,0,0);
+		ellipse(65,65,12,12);
+		fill(0);
+		textSize(10);
+		text("5.0+ Magnitude", 80,65);
+		
 		// Remember you can use Processing's graphics methods here
 	
 	}
