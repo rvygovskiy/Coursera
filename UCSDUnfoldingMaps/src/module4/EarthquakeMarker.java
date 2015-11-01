@@ -35,6 +35,7 @@ public abstract class EarthquakeMarker extends SimplePointMarker
 
 	// ADD constants for colors
 
+
 	
 	// abstract method implemented in derived classes
 	public abstract void drawEarthquake(PGraphics pg, float x, float y);
@@ -49,7 +50,7 @@ public abstract class EarthquakeMarker extends SimplePointMarker
 		float magnitude = Float.parseFloat(properties.get("magnitude").toString());
 		properties.put("radius", 2*magnitude );
 		setProperties(properties);
-		this.radius = 1.75f*getMagnitude();
+		this.radius = 1.5f*getMagnitude();
 	}
 	
 
@@ -57,7 +58,12 @@ public abstract class EarthquakeMarker extends SimplePointMarker
 	public void draw(PGraphics pg, float x, float y) {
 		// save previous styling
 		pg.pushStyle();
+		
 			
+		if(isPastDay())
+		{
+			DrawCentratedFigure.xCross(pg, x, y, this.radius);
+		}
 		// determine color of marker from depth
 		colorDetermine(pg);
 		
@@ -76,16 +82,40 @@ public abstract class EarthquakeMarker extends SimplePointMarker
 	// But this is up to you, of course.
 	// You might find the getters below helpful.
 	private void colorDetermine(PGraphics pg) {
-		//TODO: Implement this method
+		int red = pg.color(255, 0, 0);
+		int blue = pg.color(0, 0, 255);
+		int yelow = pg.color(255,255, 0);
+		int fillColor;
+		float quakeDepth= getDepth();
+		fillColor = (quakeDepth < 70.0f)?yelow:((quakeDepth >= 300.0f)?red:blue);
+		pg.fill(fillColor);
 	}
 	
-	
-	/*
+	public boolean isPastDay()
+	{
+			return (getAge().compareTo("Past Day") == 0);
+	}
+	public boolean isPastHour()
+	{
+			return (getAge().compareTo("Past Hour") == 0);
+	}
+	public boolean isPastWeek()
+	{
+			return (getAge().compareTo("Past Week") == 0);
+	}
+	public boolean isPastMonth()
+	{
+			return (getAge().compareTo("Past Month") == 0);
+	}
+	/* Past Week Past Month
 	 * getters for earthquake properties
 	 */
 	
 	public float getMagnitude() {
 		return Float.parseFloat(getProperty("magnitude").toString());
+	}
+	public String getAge() {
+		return (String) getProperty("age");
 	}
 	
 	public float getDepth() {

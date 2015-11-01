@@ -1,7 +1,10 @@
 package module4;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+
+import javax.management.monitor.CounterMonitorMBean;
 
 import de.fhpotsdam.unfolding.UnfoldingMap;
 import de.fhpotsdam.unfolding.data.Feature;
@@ -16,6 +19,7 @@ import de.fhpotsdam.unfolding.providers.MBTilesMapProvider;
 import de.fhpotsdam.unfolding.utils.MapUtils;
 import parsing.ParseFeed;
 import processing.core.PApplet;
+import processing.core.PGraphics;
 
 /** EarthquakeCityMap
  * An application with an interactive map displaying earthquake data.
@@ -80,7 +84,7 @@ public class EarthquakeCityMap extends PApplet {
 		//earthquakesURL = "test2.atom";
 		
 		// WHEN TAKING THIS QUIZ: Uncomment the next line
-		//earthquakesURL = "quiz1.atom";
+		earthquakesURL = "quiz1.atom";
 		
 		
 		// (2) Reading in earthquake data and geometric properties
@@ -119,13 +123,16 @@ public class EarthquakeCityMap extends PApplet {
 	    map.addMarkers(quakeMarkers);
 	    map.addMarkers(cityMarkers);
 	    
+	    
 	}  // End setup
 	
 	
 	public void draw() {
-		background(0);
+		background(200);
 		map.draw();
 		addKey();
+		//fill(color(255,0,0));
+		//stroke(color(255,0,0));
 		
 	}
 	
@@ -135,26 +142,43 @@ public class EarthquakeCityMap extends PApplet {
 		// Remember you can use Processing's graphics methods here
 		fill(255, 250, 240);
 		rect(25, 50, 150, 250);
-		
 		fill(0);
 		textAlign(LEFT, CENTER);
 		textSize(12);
 		text("Earthquake Key", 50, 75);
+		text("Size - Magnitude", 50, 175);
 		
-		fill(color(255, 0, 0));
-		ellipse(50, 125, 15, 15);
+		fill(color(150, 0, 250));
+		DrawCentratedFigure.triangle(this.g, 50, 100, 7);
+		fill(color(255, 255, 255));
+		DrawCentratedFigure.ellipse(this.g, 50, 125, 7);
+		DrawCentratedFigure.rect(this.g, 50, 150, 7);
+		//ellipse(50, 125, 15, 15);
 		fill(color(255, 255, 0));
-		ellipse(50, 175, 10, 10);
+		ellipse(50, 200, 12, 12);
 		fill(color(0, 0, 255));
-		ellipse(50, 225, 5, 5);
+		ellipse(50, 225, 12, 12);
+		fill(color(255, 0, 0));
+		ellipse(50, 250, 12, 12);
+		fill(255);
+		DrawCentratedFigure.ellipse(this.g, 50, 275, 7);
+		DrawCentratedFigure.xCross(this.g, 50, 275, 7);
 		
 		fill(0, 0, 0);
-		text("5.0+ Magnitude", 75, 125);
-		text("4.0+ Magnitude", 75, 175);
-		text("Below 4.0", 75, 225);
+		text("City Marker", 75, 100);
+		text("Land Quake", 75, 125);
+		text("Ocean Quake", 75, 150);
+		text("Shallow", 75, 200);
+		text("Intermediate", 75, 225);
+		text("Deep", 75, 250);
+		text("Past Day", 75, 275);
+			
 	}
 
-	
+	private void triangleMarker(float x, float y, float r)
+	{
+		triangle((float)(x-0.5*Math.sqrt(3)*r),(float)(y+0.5*r),x,y-r,(float)(x+0.5*Math.sqrt(3)*r),(float)(y+0.5*r));
+	}
 	
 	// Checks whether this quake occurred on land.  If it did, it sets the 
 	// "country" property of its PointFeature to the country where it occurred
@@ -163,11 +187,16 @@ public class EarthquakeCityMap extends PApplet {
 	private boolean isLand(PointFeature earthquake) {
 		
 		// IMPLEMENT THIS: loop over all countries to check if location is in any of them
-		
-		// TODO: Implement this method using the helper method isInCountry
-		
+		// Implement this method using the helper method isInCountry
 		// not inside any country
-		return false;
+		boolean result = false;
+		int i = 0;
+		do
+		{
+			result = isInCountry(earthquake, countryMarkers.get(i));
+			i++;
+		} while(!result && i < countryMarkers.size() );
+		return result;
 	}
 	
 	// prints countries with number of earthquakes
@@ -178,10 +207,34 @@ public class EarthquakeCityMap extends PApplet {
 	// And LandQuakeMarkers have a "country" property set.
 	private void printQuakes() 
 	{
-		// TODO: Implement this method
+		HashMap<String, Float> countryEarthquake = new HashMap<String, Float>();
+		float count;
+		float OseanCounts = 0;
+		String str;
+		for(Marker quake : quakeMarkers)
+		{
+			str = (String) quake.getProperty("country");
+			if (str != null)
+			{
+				if (countryEarthquake.get(str) != null)
+				{
+					count = (float)countryEarthquake.get(str) +1;
+				} else
+				{
+					count = 1;
+				}	
+				countryEarthquake.put(str, count);
+			} else
+			{
+				OseanCounts++;
+			}
+		}
+		for(HashMap.Entry<String, Float> e : countryEarthquake.entrySet())
+		{
+			System.out.println(e.getKey() + " : " + e.getValue());
+		}
+		System.out.println("Osean's earthquakes : " + OseanCounts);
 	}
-	
-	
 	
 	// helper method to test whether a given earthquake is in a given country
 	// This will also add the country property to the properties of the earthquake 

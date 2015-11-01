@@ -4,6 +4,7 @@ import de.fhpotsdam.unfolding.data.Feature;
 import de.fhpotsdam.unfolding.data.PointFeature;
 import de.fhpotsdam.unfolding.geo.Location;
 import de.fhpotsdam.unfolding.marker.SimplePointMarker;
+import processing.core.PApplet;
 import processing.core.PGraphics;
 
 /** Implements a visual marker for cities on an earthquake map
@@ -25,6 +26,7 @@ public class CityMarker extends SimplePointMarker {
 	
 	public CityMarker(Feature city) {
 		super(((PointFeature)city).getLocation(), city.getProperties());
+		super.setRadius(5);
 	}
 	
 	
@@ -38,13 +40,19 @@ public class CityMarker extends SimplePointMarker {
 	/**
 	 * Implementation of method to draw marker on the map.
 	 */
+	//pg  type was changed from PGraphics to PApplet
+	
 	public void draw(PGraphics pg, float x, float y) {
+		int cMarker = pg.color(150,0,255);
+		//ShapeTypeMarker cShape = new ShapeTypeMarker(pg.parent);
 		// Save previous drawing style
 		pg.pushStyle();
 		
-		// TODO: Add code to draw a triangle to represent the CityMarker
+		//Add code to draw a triangle to represent the CityMarker
 		
-		// Restore previous drawing style
+		pg.fill(cMarker);
+		DrawCentratedFigure.triangle(pg, x, y, 7);
+		/// Restore previous drawing style
 		pg.popStyle();
 	}
 	
