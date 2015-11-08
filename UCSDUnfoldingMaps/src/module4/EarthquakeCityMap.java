@@ -149,7 +149,7 @@ public class EarthquakeCityMap extends PApplet {
 		text("Size - Magnitude", 50, 175);
 		
 		fill(color(150, 0, 250));
-		DrawCentratedFigure.triangle(this.g, 50, 100, 7);
+		DrawCentratedFigure.triangle(this.g, 50, 100, module5.CityMarker.TRI_SIZE);
 		fill(color(255, 255, 255));
 		DrawCentratedFigure.ellipse(this.g, 50, 125, 7);
 		DrawCentratedFigure.rect(this.g, 50, 150, 7);

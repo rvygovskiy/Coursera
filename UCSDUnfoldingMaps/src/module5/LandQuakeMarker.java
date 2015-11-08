@@ -1,6 +1,7 @@
 package module5;
 
 import de.fhpotsdam.unfolding.data.PointFeature;
+import module4.DrawCentratedFigure;
 import processing.core.PGraphics;
 
 /** Implements a visual marker for land earthquakes on an earthquake map
@@ -25,7 +26,8 @@ public class LandQuakeMarker extends EarthquakeMarker {
 	/** Draw the earthquake as an ellipse */
 	@Override
 	public void drawEarthquake(PGraphics pg, float x, float y) {
-		pg.ellipse(x, y, 2*radius, 2*radius);
+		DrawCentratedFigure.ellipse(pg, x, y, this.radius);
+		//pg.ellipse(x, y, 2*radius, 2*radius);
 		
 	}
 	

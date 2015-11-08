@@ -1,6 +1,8 @@
 package module5;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 
 import de.fhpotsdam.unfolding.UnfoldingMap;
@@ -117,7 +119,7 @@ public class EarthquakeCityMap extends PApplet {
 	
 	
 	public void draw() {
-		background(0);
+		background(200);
 		map.draw();
 		addKey();
 		
@@ -144,8 +146,16 @@ public class EarthquakeCityMap extends PApplet {
 	// Make sure you do not select two markers.
 	// 
 	private void selectMarkerIfHover(List<Marker> markers)
-	{
-		// TODO: Implement this method
+	{Iterator<Marker>  markerIterator  = markers.iterator(); 
+		while(lastSelected == null && markerIterator.hasNext())
+		{
+			CommonMarker nextMarker = (CommonMarker) markerIterator.next();
+			if(nextMarker.isInside(map, mouseX, mouseY))
+			{
+				lastSelected = nextMarker;
+				lastSelected.setSelected(true);
+			}
+		}
 	}
 	
 	/** The event handler for mouse clicks
@@ -153,15 +163,125 @@ public class EarthquakeCityMap extends PApplet {
 	 * Or if a city is clicked, it will display all the earthquakes 
 	 * where the city is in the threat circle
 	 */
+	/*mouse clicke user action I start  processing at onCityMarkerClicked helper method which goes through city marker's list and makes:
+	1. find first not hidden city marker if mouse clicked on it - in this case method returns true, other wise - false
+	2. check status "clicked" of detected marker:
+	2.1 If true - uncover all markers by set up false for status "Hidden" at helper method unhideMarkers. And setup false for status "clicked" of detected marker.
+	2.2.If false - uncheck all markers by set up false for status "clicked" at   helper method unClickeMarkers. Setup true for status "clicked" of detected marker. Hide all city markers by setup true for  status "Hidden" at helper method hideMarkers except for detected marker.Go through earth quake marker list with check of threat distance to the detected city marker and hide all earth quake markers than lies not in threat circle.
+	In case onCityMarkerClicked method return false I start the same analysis at onQuakeMarkerClicked helper method which goes through quake marker's list.
+	Why is another helper method? - Because a different code: another point of view to consider the same condition.
+	In case onQuakeMarkerClicked method return false uncover all markers  by set up false for status "Hidden" at helper method unhideMarkers and unchecked all markers by set up false for status "clicked" at   helper method unClickeMarkers.
+	That's it.
+
+	Well done! 
+	Here's how our code handled mouse clicks:
+	When the user clicks the mouse, the mouseClicked code in EarthquakeCityMap is called by Java. This method first checks the lastClicked variable. If it is null, meaning a city is already shown as "clicked", it sets lastClicked to null and unhides all the cities and earthquakes.
+	Otherwise, it relies on two helper methods: checkEarthquakesForClick and checkCitiesForClick.
+	checkEarthquakesForClick first checks lastClicked, and aborts if it is not null (just in case). Then it loops through all the earthquakes to see if one has been clicked on. If it finds one, it loops through all of the earthquake markers and sets all but the clicked earthquake to hidden. Then it loops through the city markers and sets all of the city markers outside of the clicked earthquake's threat circle to be hidden. It then returns so that it does not check anymore earthquakes.
+	checkCitiesForClick first checks lastClicked, and aborts if it is not null (which could mean an earthquake has already been found as clicked). Then it loops through all the cities to see if one has been clicked on. If it finds one, it loops through all of the city markers and sets all but the clicked city to hidden. Then it loops through the earthquake markers and sets all of the earthquake markers for which the city is outside of the threat circle to be hidden. It then returns so that it does not check anymore cities.
+	 * (non-Javadoc)
+	 * @see processing.core.PApplet#mouseClicked()
+	 */
 	@Override
 	public void mouseClicked()
 	{
-		// TODO: Implement this method
-		// Hint: You probably want a helper method or two to keep this code
-		// from getting too long/disorganized
+		if(!onCityMarkerClicked(cityMarkers))
+		{
+			onQuakeMarkerClicked(quakeMarkers);
+		}
 	}
 	
 	
+	private void onQuakeMarkerClicked(List<Marker> markers) 
+	{	boolean clickedMarker;
+		Iterator<Marker>  markerIterator  = markers.iterator(); 
+		if(markerIterator.hasNext())
+		{
+			CommonMarker nextMarker;
+			do
+			{
+				nextMarker = (CommonMarker) markerIterator.next();
+				clickedMarker = (nextMarker.isInside(map, mouseX, mouseY) && !(nextMarker.isHidden()));
+			}while (!(clickedMarker) && markerIterator.hasNext());
+			if(clickedMarker)
+			{
+				if(nextMarker.getClicked())
+				{
+					unhideMarkers();
+					nextMarker.setClicked(false);
+				}else
+				{
+					unClickeMarkers();
+					hideMarkers(quakeMarkers);
+					nextMarker.setClicked(true);
+					nextMarker.setHidden(false);
+					double threatCircle = ((EarthquakeMarker)nextMarker).threatCircle();
+					Location clickedMarkerLocation = nextMarker.getLocation();
+					for(Marker qMarker: cityMarkers)
+					{
+						if(qMarker.getDistanceTo(clickedMarkerLocation) <= threatCircle)
+						{
+							qMarker.setHidden(false);
+						}else
+						{
+							qMarker.setHidden(true);
+						}
+					}
+				}
+			}
+		}
+			
+	}
+
+
+	private boolean onCityMarkerClicked(List<Marker> markers) 
+	{	boolean clickedMarker = false;
+		Iterator<Marker>  markerIterator  = markers.iterator(); 
+		if(markerIterator.hasNext())
+		{
+			CommonMarker nextMarker;
+			do
+			{
+				nextMarker = (CommonMarker) markerIterator.next();
+				clickedMarker = (nextMarker.isInside(map, mouseX, mouseY) && !(nextMarker.isHidden()));
+			}while (!(clickedMarker) && markerIterator.hasNext());
+			if(clickedMarker)
+			{
+				if(nextMarker.getClicked())
+				{
+					unhideMarkers();
+					nextMarker.setClicked(false);
+				}else
+				{
+					unClickeMarkers();
+					hideMarkers(cityMarkers);
+					nextMarker.setClicked(true);
+					nextMarker.setHidden(false);
+					Location clickedMarkerLocation = nextMarker.getLocation();
+					for(Marker qMarker: quakeMarkers)
+					{
+						if(qMarker.getDistanceTo(clickedMarkerLocation) <= ((EarthquakeMarker)qMarker).threatCircle())
+						{
+							qMarker.setHidden(false);
+						}else
+						{
+							qMarker.setHidden(true);
+						}
+					}
+				}
+			}
+		}
+		return clickedMarker;	
+	}
+	
+	private void hideMarkers(List<Marker> markers)
+	{
+		for(Marker marker : markers)
+		{
+			marker.setHidden(true);
+		}
+	}
+
 	// loop over and unhide all markers
 	private void unhideMarkers() {
 		for(Marker marker : quakeMarkers) {
@@ -170,6 +290,15 @@ public class EarthquakeCityMap extends PApplet {
 			
 		for(Marker marker : cityMarkers) {
 			marker.setHidden(false);
+		}
+	}
+	private void unClickeMarkers() {
+		for(Marker marker : quakeMarkers) {
+			((CommonMarker) marker).setClicked(false);
+		}
+			
+		for(Marker marker : cityMarkers) {
+			((CommonMarker) marker).setClicked(false);
 		}
 	}
 	
@@ -188,13 +317,15 @@ public class EarthquakeCityMap extends PApplet {
 		textSize(12);
 		text("Earthquake Key", xbase+25, ybase+25);
 		
-		fill(150, 30, 30);
 		int tri_xbase = xbase + 35;
 		int tri_ybase = ybase + 50;
+		fill(150, 0, 250);
+		DrawCentratedFigure.triangle(this.g, tri_xbase, tri_ybase, CityMarker.TRI_SIZE);
+		/*fill(150, 30, 30);
 		triangle(tri_xbase, tri_ybase-CityMarker.TRI_SIZE, tri_xbase-CityMarker.TRI_SIZE, 
 				tri_ybase+CityMarker.TRI_SIZE, tri_xbase+CityMarker.TRI_SIZE, 
 				tri_ybase+CityMarker.TRI_SIZE);
-
+		*/
 		fill(0, 0, 0);
 		textAlign(LEFT, CENTER);
 		text("City Marker", tri_xbase + 15, tri_ybase);
@@ -257,7 +388,7 @@ public class EarthquakeCityMap extends PApplet {
 	}
 	
 	// prints countries with number of earthquakes
-	private void printQuakes() {
+	/*private void printQuakes() {
 		int totalWaterQuakes = quakeMarkers.size();
 		for (Marker country : countryMarkers) {
 			String countryName = country.getStringProperty("name");
@@ -277,6 +408,37 @@ public class EarthquakeCityMap extends PApplet {
 			}
 		}
 		System.out.println("OCEAN QUAKES: " + totalWaterQuakes);
+	}
+	*/
+	private void printQuakes() 
+	{
+		HashMap<String, Float> countryEarthquake = new HashMap<String, Float>();
+		float count;
+		float OseanCounts = 0;
+		String str;
+		for(Marker quake : quakeMarkers)
+		{
+			str = (String) quake.getProperty("country");
+			if (str != null)
+			{
+				if (countryEarthquake.get(str) != null)
+				{
+					count = (float)countryEarthquake.get(str) +1;
+				} else
+				{
+					count = 1;
+				}	
+				countryEarthquake.put(str, count);
+			} else
+			{
+				OseanCounts++;
+			}
+		}
+		for(HashMap.Entry<String, Float> e : countryEarthquake.entrySet())
+		{
+			System.out.println(e.getKey() + ": " + e.getValue());
+		}
+		System.out.println("Osean's earthquakes : " + OseanCounts);
 	}
 	
 	

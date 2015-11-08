@@ -17,7 +17,7 @@ public class CityMarker extends SimplePointMarker {
 	
 	// The size of the triangle marker
 	// It's a good idea to use this variable in your draw method
-	public static final int TRI_SIZE = 5;  
+	public static final int TRI_SIZE = 7;  
 	
 	public CityMarker(Location location) {
 		super(location);
@@ -26,7 +26,7 @@ public class CityMarker extends SimplePointMarker {
 	
 	public CityMarker(Feature city) {
 		super(((PointFeature)city).getLocation(), city.getProperties());
-		super.setRadius(5);
+		super.setRadius(TRI_SIZE);
 	}
 	
 	
@@ -51,7 +51,7 @@ public class CityMarker extends SimplePointMarker {
 		//Add code to draw a triangle to represent the CityMarker
 		
 		pg.fill(cMarker);
-		DrawCentratedFigure.triangle(pg, x, y, 7);
+		DrawCentratedFigure.triangle(pg, x, y, TRI_SIZE);
 		/// Restore previous drawing style
 		pg.popStyle();
 	}

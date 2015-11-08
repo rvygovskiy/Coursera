@@ -40,11 +40,55 @@ public class VisualisationDataOnMap extends PApplet
 		
 		map.addMarkers(countryMarkers);
 		shadeCountries();
+		//Draw 2 squared buttons
+	/*	fill(255,255,255);
+		rect(50, 50, 25, 25);
 		
+		fill(100,100,100);
+		rect(50, 100, 25, 25);
+	*/	
 	}
 	public void draw()
 	{
 		map.draw();
+		backgroundButtons();
+	}
+	public void backgroundButtons()
+	{
+		fill(255,255,255);
+		rect(50, 50, 25, 25);
+		
+		fill(100,100,100);
+		rect(50, 100, 25, 25);	
+	}
+	public void mousePressed()
+	{
+		
+	}
+	public void mouseClicked()
+	{
+		
+	}
+	public void mouseReleased()
+	{
+		if(mouseX > 50 && mouseX <75 && 
+				mouseY > 50 && mouseY < 75)
+		{
+			background(255, 255, 255);
+		}
+		if(mouseX > 50 && mouseX <75 && 
+				mouseY > 100 && mouseY < 125)
+		{
+			background(100, 100, 100);
+		}
+	}
+	
+	public void keyPressed()
+	{
+		if(key == 'b')
+		{
+			background(255, 255, 255);
+		}
 	}
 	private void shadeCountries()
 	{

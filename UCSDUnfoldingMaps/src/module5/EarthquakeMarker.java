@@ -68,7 +68,7 @@ public abstract class EarthquakeMarker extends CommonMarker
 		drawEarthquake(pg, x, y);
 		
 		// IMPLEMENT: add X over marker if within past day		
-		String age = getStringProperty("age");
+	/*	String age = getStringProperty("age");
 		if ("Past Hour".equals(age) || "Past Day".equals(age)) {
 			
 			pg.strokeWeight(2);
@@ -83,17 +83,49 @@ public abstract class EarthquakeMarker extends CommonMarker
 					y-(radius+buffer));
 			
 		}
-		
+		*/
+		if(isPastDay() || isPastDay())
+		{
+			DrawCentratedFigure.xCross(pg, x, y, (float)1.3*this.radius);
+		}
+	
 		// reset to previous styling
 		pg.popStyle();
 		
 	}
-
+	public boolean isPastDay()
+	{
+			return (getAge().compareTo("Past Day") == 0);
+	}
+	public boolean isPastHour()
+	{
+			return (getAge().compareTo("Past Hour") == 0);
+	}
+	public boolean isPastWeek()
+	{
+			return (getAge().compareTo("Past Week") == 0);
+	}
+	public boolean isPastMonth()
+	{
+			return (getAge().compareTo("Past Month") == 0);
+	}
+	public String getAge() {
+		return (String) getProperty("age");
+	}
+	
 	/** Show the title of the earthquake if this marker is selected */
 	@Override
 	public void showTitle(PGraphics pg, float x, float y)
 	{
-		// TODO: Implement this method
+		String displayedText = getTitle();
+		float textWidht = pg.textWidth(displayedText);
+		pg.fill(200,200, 0);
+		pg.rect(x+radius, y-radius-10, textWidht+2, 10);
+		pg.fill(0);
+		//pg.textAlign(LEFT, CENTER);
+		pg.textSize(10);
+		pg.text(displayedText/* + " magnitude: " + getMagnitude()*/, x+radius+1, y-radius-1);
+		
 		
 	}
 
@@ -154,7 +186,13 @@ public abstract class EarthquakeMarker extends CommonMarker
 		return isOnLand;
 	}
 	
-
+	public void selectMarkerIfHover(float mouseX, float mouseY, float x, float y) 
+	{	
+		if(isInside(mouseX, mouseY, x, y))
+		{
+			setSelected(true);
+		}
+	}
 	
 	
 }
