@@ -187,13 +187,17 @@ public class EarthquakeCityMap extends PApplet {
 	{
 		if(!onCityMarkerClicked(cityMarkers))
 		{
-			onQuakeMarkerClicked(quakeMarkers);
+			if(!onQuakeMarkerClicked(quakeMarkers))
+				{
+				unClickeMarkers();
+				unhideMarkers();
+				};
 		}
 	}
 	
 	
-	private void onQuakeMarkerClicked(List<Marker> markers) 
-	{	boolean clickedMarker;
+	private boolean onQuakeMarkerClicked(List<Marker> markers) 
+	{	boolean clickedMarker = false;
 		Iterator<Marker>  markerIterator  = markers.iterator(); 
 		if(markerIterator.hasNext())
 		{
@@ -230,7 +234,7 @@ public class EarthquakeCityMap extends PApplet {
 				}
 			}
 		}
-			
+		return clickedMarker;	
 	}
 
 
