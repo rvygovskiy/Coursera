@@ -1,13 +1,12 @@
 package module5;
 
 import de.fhpotsdam.unfolding.data.PointFeature;
-import module4.DrawCentratedFigure;
 import processing.core.PGraphics;
 
 /** Implements a visual marker for ocean earthquakes on an earthquake map
  * 
  * @author UC San Diego Intermediate Software Development MOOC team
- * @author Your name here
+ * @author modified by Roman V.
  *
  */
 public class OceanQuakeMarker extends EarthquakeMarker {

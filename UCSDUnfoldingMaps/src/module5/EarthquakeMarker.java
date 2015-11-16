@@ -9,7 +9,7 @@ import processing.core.PGraphics;
  * @author Your name here
  *
  */
-public abstract class EarthquakeMarker extends CommonMarker
+public abstract class EarthquakeMarker extends CommonMarker implements Comparable<EarthquakeMarker>
 {
 	
 	// Did the earthquake occur on land?  This will be set by the subclasses.
@@ -53,7 +53,11 @@ public abstract class EarthquakeMarker extends CommonMarker
 		setProperties(properties);
 		this.radius = 1.75f*getMagnitude();
 	}
-	
+	public int compareTo(EarthquakeMarker marker) 
+	{	float result = this.getMagnitude()-marker.getMagnitude();
+		return ((result < 0)?  1: (result > 0)? -1 : 0 );
+	}
+		
 
 	// calls abstract method drawEarthquake and then checks age and draws X if needed
 	@Override
@@ -128,7 +132,13 @@ public abstract class EarthquakeMarker extends CommonMarker
 		
 		
 	}
-
+	
+	public String getTitleInfo()
+	{
+		String titleInfo = getTitle();
+		return titleInfo;
+	}
+	
 	
 	/**
 	 * Return the "threat circle" radius, or distance up to 
@@ -159,7 +169,14 @@ public abstract class EarthquakeMarker extends CommonMarker
 		}
 	}
 	
-	
+	/** toString
+	 * Returns an earthquake marker's string representation
+	 * @return the string representation of an earthquake marker.
+	 */
+	public String toString()
+	{
+		return getTitle();
+	}
 	/*
 	 * getters for earthquake properties
 	 */
@@ -186,13 +203,14 @@ public abstract class EarthquakeMarker extends CommonMarker
 		return isOnLand;
 	}
 	
-	public void selectMarkerIfHover(float mouseX, float mouseY, float x, float y) 
+	/*public void selectMarkerIfHover(float mouseX, float mouseY, float x, float y) 
 	{	
 		if(isInside(mouseX, mouseY, x, y))
 		{
 			setSelected(true);
 		}
 	}
+	*/
 	
 	
 }

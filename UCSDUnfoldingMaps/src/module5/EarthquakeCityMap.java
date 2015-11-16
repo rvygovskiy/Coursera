@@ -1,9 +1,16 @@
 package module5;
 
+import java.awt.event.KeyEvent;
+import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+
+import javax.swing.Popup;
+import javax.swing.PopupFactory;
 
 import de.fhpotsdam.unfolding.UnfoldingMap;
 import de.fhpotsdam.unfolding.data.Feature;
@@ -63,8 +70,10 @@ public class EarthquakeCityMap extends PApplet {
 	// NEW IN MODULE 5
 	private CommonMarker lastSelected;
 	private CommonMarker lastClicked;
-	
+	private boolean isFiltered = false;
+	private NumberFormat formatter = NumberFormat.getNumberInstance();
 	public void setup() {		
+		
 		// (1) Initializing canvas and map tiles
 		size(900, 700, OPENGL);
 		if (offline) {
@@ -77,6 +86,14 @@ public class EarthquakeCityMap extends PApplet {
 		    //earthquakesURL = "2.5_week.atom";
 		}
 		MapUtils.createDefaultEventDispatcher(this, map);
+		
+		// FOR TESTING: Set earthquakesURL to be one of the testing files by uncommenting
+		// one of the lines below.  This will work whether you are online or offline
+		//earthquakesURL = "test1.atom";
+		//earthquakesURL = "test2.atom";
+		
+		// Uncomment this line to take the quiz
+		//earthquakesURL = "quiz2.atom";
 		
 		
 		// (2) Reading in earthquake data and geometric properties
@@ -108,7 +125,7 @@ public class EarthquakeCityMap extends PApplet {
 
 	    // could be used for debugging
 	    printQuakes();
-	 		
+	    sortAndPrint(5);
 	    // (3) Add markers to map
 	    //     NOTE: Country markers are not added to the map.  They are used
 	    //           for their geometric properties
@@ -122,12 +139,82 @@ public class EarthquakeCityMap extends PApplet {
 		background(200);
 		map.draw();
 		addKey();
+		if(lastSelected != null && !lastSelected.isHidden())
+		{
+		//	lastSelected.showTitle(this.g,mouseX, mouseY);
+			lastSelected.showAddInformation(this.g, mouseX, mouseY, lastSelected.getRadius(), lastSelected.getTitleInfo(), 0, 10, (lastSelected instanceof CityMarker)? color(203,230,231) : color(235,238,196), false);
+		}
+		if(lastClicked != null && !lastClicked.isHidden())
+		{
+		//	lastSelected.showTitle(this.g,mouseX, mouseY);
+			lastClicked.showAddInformation(this.g, 25, 650, 0, lastClicked.getAddInformation(), 0, 10, 255, false);
+		}
+	}
+
+	private void sortAndPrint(int numToPrint)
+	{
+		List<EarthquakeMarker> earthquakeList = new ArrayList<EarthquakeMarker>((Collection<? extends EarthquakeMarker>)quakeMarkers) ;
 		
+		Collections.sort(earthquakeList);
+		int index = 0, sizeOfList = earthquakeList.size();
+		String textToPrint;
+		for (Marker eqm : earthquakeList)
+		{	
+			textToPrint = "";
+			if(index <sizeOfList  && index < numToPrint)
+			{
+			textToPrint = index+1 + ". " +((EarthquakeMarker) eqm).getTitle(); 
+			System.out.println(textToPrint);
+			index++;
+			}else
+			{
+				return;
+			}
+			
+		}
 	}
 	
+
 	/** Event handler that gets called automatically when the 
 	 * mouse moves.
 	 */
+	@Override
+	public void keyPressed(java.awt.event.KeyEvent e) 
+	{
+		if(e.getKeyCode() == KeyEvent.VK_SPACE)
+		{
+			if(!isFiltered)
+			{
+				hideMarkers(quakeMarkers);
+				hideMarkers(cityMarkers);
+				filterConnetedMarkers();
+				isFiltered = true;
+				
+			}else
+			{
+				unhideMarkers();
+				isFiltered = false;
+			}
+		}
+	}
+	public void filterConnetedMarkers()
+	{
+		for(Marker cityMarker : cityMarkers)
+		{
+			Location cityMarkerLocation = cityMarker.getLocation();
+			for(Marker quakeMarker : quakeMarkers)
+			{
+				double	distanceToCity = quakeMarker.getDistanceTo(cityMarkerLocation)
+						,threatCircle = ((EarthquakeMarker)quakeMarker).threatCircle();
+				if(distanceToCity <= threatCircle)
+				{
+					quakeMarker.setHidden(false);
+					cityMarker.setHidden(false);
+				}
+			}
+			
+		}
+	}
 	@Override
 	public void mouseMoved()
 	{
@@ -185,6 +272,10 @@ public class EarthquakeCityMap extends PApplet {
 	@Override
 	public void mouseClicked()
 	{
+		if (lastClicked != null) {
+			lastClicked = null;
+		
+		}
 		if(!onCityMarkerClicked(cityMarkers))
 		{
 			if(!onQuakeMarkerClicked(quakeMarkers))
@@ -198,7 +289,9 @@ public class EarthquakeCityMap extends PApplet {
 	
 	private boolean onQuakeMarkerClicked(List<Marker> markers) 
 	{	boolean clickedMarker = false;
-		Iterator<Marker>  markerIterator  = markers.iterator(); 
+		Iterator<Marker>  markerIterator  = markers.iterator();
+		int numberConnetionObjets = 0;
+		String addInformation = "", cityInformation="";
 		if(markerIterator.hasNext())
 		{
 			CommonMarker nextMarker;
@@ -220,18 +313,34 @@ public class EarthquakeCityMap extends PApplet {
 					nextMarker.setClicked(true);
 					nextMarker.setHidden(false);
 					double threatCircle = ((EarthquakeMarker)nextMarker).threatCircle();
+					String strThreatCircle = formatter.format(threatCircle);
 					Location clickedMarkerLocation = nextMarker.getLocation();
+					addInformation = nextMarker.getTitleInfo()+
+							"\nLocation: "+clickedMarkerLocation.toString()+
+							"\nThreat circle: " + strThreatCircle+ "km";
 					for(Marker qMarker: cityMarkers)
 					{
-						if(qMarker.getDistanceTo(clickedMarkerLocation) <= threatCircle)
+						double distanceToCity;
+						distanceToCity = qMarker.getDistanceTo(clickedMarkerLocation);
+						if(distanceToCity  <= threatCircle)
 						{
+							String strDistanceToCity = formatter.format (distanceToCity);
 							qMarker.setHidden(false);
+							cityInformation+="\n" + ((CommonMarker)qMarker).getTitleInfo() +
+									"\nDistance: " + strDistanceToCity + "km";
+							numberConnetionObjets++;
 						}else
 						{
 							qMarker.setHidden(true);
 						}
 					}
+					addInformation+= "\n"+ ((numberConnetionObjets == 0) ? "There is no any city in danger area" :(((numberConnetionObjets == 1)? "There is 1 city in danger area": ("There are " +numberConnetionObjets +" cities in danger area"))))+
+								cityInformation;
+					((CommonMarker)nextMarker).setNumberConnetionObjets(numberConnetionObjets);
+					((CommonMarker)nextMarker).setAddInformation(addInformation);
+					
 				}
+				lastClicked = nextMarker;
 			}
 		}
 		return clickedMarker;	
@@ -239,7 +348,10 @@ public class EarthquakeCityMap extends PApplet {
 
 
 	private boolean onCityMarkerClicked(List<Marker> markers) 
-	{	boolean clickedMarker = false;
+	{	
+		boolean clickedMarker = false;
+		int numberConnetionObjets = 0;
+		String addInformation = "", quakeInformation="";
 		Iterator<Marker>  markerIterator  = markers.iterator(); 
 		if(markerIterator.hasNext())
 		{
@@ -255,6 +367,7 @@ public class EarthquakeCityMap extends PApplet {
 				{
 					unhideMarkers();
 					nextMarker.setClicked(false);
+					
 				}else
 				{
 					unClickeMarkers();
@@ -262,17 +375,38 @@ public class EarthquakeCityMap extends PApplet {
 					nextMarker.setClicked(true);
 					nextMarker.setHidden(false);
 					Location clickedMarkerLocation = nextMarker.getLocation();
+					addInformation = nextMarker.getTitleInfo()+
+							"\nLocation: "+clickedMarkerLocation.toString();
+					
 					for(Marker qMarker: quakeMarkers)
 					{
-						if(qMarker.getDistanceTo(clickedMarkerLocation) <= ((EarthquakeMarker)qMarker).threatCircle())
+						double	distanceToCity = qMarker.getDistanceTo(clickedMarkerLocation)
+								,threatCircle = ((EarthquakeMarker)qMarker).threatCircle();
+						String	strDistanceToCity = formatter.format(distanceToCity)
+								,strThreatCircle = formatter.format(threatCircle);
+						
+						if(distanceToCity <= threatCircle)
 						{
 							qMarker.setHidden(false);
+							quakeInformation+="\n" + ((CommonMarker)qMarker).getTitleInfo() +
+									"\nLocation: "+(qMarker.getLocation()).toString()+
+									"\nThreat circle: " + strThreatCircle+ "km"+
+									"\nDistance: " + strDistanceToCity + "km";
+							numberConnetionObjets++;
+					
 						}else
 						{
 							qMarker.setHidden(true);
 						}
 					}
+				addInformation+= "\n"+ ((numberConnetionObjets == 0) ? "The city is in a safe area" :(((numberConnetionObjets == 1)? "There is 1 eartquake in danger area": ("There are " +numberConnetionObjets +" eartquakes in danger area"))))+
+							quakeInformation;
+				((CommonMarker)nextMarker).setNumberConnetionObjets(numberConnetionObjets);
+				((CommonMarker)nextMarker).setAddInformation(addInformation);
+				
 				}
+				lastClicked = nextMarker;
+				
 			}
 		}
 		return clickedMarker;	

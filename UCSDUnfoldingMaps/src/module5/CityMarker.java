@@ -3,7 +3,6 @@ package module5;
 import de.fhpotsdam.unfolding.data.Feature;
 import de.fhpotsdam.unfolding.data.PointFeature;
 import de.fhpotsdam.unfolding.geo.Location;
-import de.fhpotsdam.unfolding.marker.SimplePointMarker;
 import processing.core.PConstants;
 import processing.core.PGraphics;
 
@@ -13,10 +12,7 @@ import processing.core.PGraphics;
  * @author Your name here
  *
  */
-// TODO: Change SimplePointMarker to CommonMarker as the very first thing you do 
-// in module 5 (i.e. CityMarker extends CommonMarker).  It will cause an error.
-// That's what's expected.
-public class CityMarker extends CommonMarker/*SimplePointMarker*/ {
+public class CityMarker extends CommonMarker {
 	
 	public static int TRI_SIZE = 7;  // The size of the triangle marker
 	
@@ -50,18 +46,26 @@ public class CityMarker extends CommonMarker/*SimplePointMarker*/ {
 	/** Show the title of the city if this marker is selected */
 	public void showTitle(PGraphics pg, float x, float y)
 	{
+		pg.pushStyle();
 		String displayedText = getCity()+" " +getCountry()/*+" population: " + getPopulation()+"m"*/;
+		pg.textSize(10);
 		float textWidht = pg.textWidth(displayedText);
 		pg.fill(200,200,200);
-		pg.rect(x+radius, y-radius-10, textWidht+2, 10);
+		pg.rect(x+radius, y-radius-14, textWidht+4, 14);
+		
+		pg.textAlign(PConstants.LEFT, PConstants.TOP);
 		pg.fill(0);
-		//pg.textAlign(LEFT, CENTER);
-		pg.textSize(10);
-		pg.text(displayedText/* + " magnitude: " + getMagnitude()*/, x+radius+1, y-radius-1);
+		pg.text(displayedText, x+radius+2, y-radius-12);
+		pg.popStyle();
 		
 	}
 	
-	
+	public String getTitleInfo()
+	{
+		String titleInfo = getCity()+" " +getCountry() 
+			+ "\nPop: "+ getPopulation() +"M";
+		return titleInfo;
+	}
 	
 	/* Local getters for some city properties.  
 	 */
